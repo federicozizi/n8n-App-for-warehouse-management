@@ -1,0 +1,1005 @@
+{
+  "name": "Marco Rastelli - Acquisizione ordine",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        -304
+      ],
+      "id": "5919810e-6a52-46cd-9075-4f5c367b755c",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WddjUHo7QAiF0Bfa",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionID }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        320
+      ],
+      "id": "e32b5172-3cf7-41c4-8754-03b43d9e598e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw",
+          "mode": "list",
+          "cachedResultName": "Gestionale Hermitage - Interfaccia 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1433095709,
+          "mode": "list",
+          "cachedResultName": "Entrata",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit#gid=1433095709"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email fornitore": "={{ $json.From }}",
+            "Data di arrivo": "={{ $now }}",
+            "Richiesta": "={{ $json.snippet }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Email fornitore",
+              "displayName": "Email fornitore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Data di arrivo",
+              "displayName": "Data di arrivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Richiesta",
+              "displayName": "Richiesta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Avvio sistema (Pulsante)",
+              "displayName": "Avvio sistema (Pulsante)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        160,
+        -304
+      ],
+      "id": "af72e22a-7db3-4272-bffe-137ac337d6f2",
+      "name": "Aggiungi richiesta in entrata",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ayZ5Dw8ZEIzwlby3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Script per nodo \"Code\" di n8n - Generatore SessionID\n// Genera un sessionID unico basato su timestamp e ID casuale\n\nfunction generateSessionID() {\n  // Ottieni timestamp corrente in millisecondi\n  const timestamp = Date.now();\n  \n  // Genera un ID casuale di 8 caratteri alfanumerici\n  const randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';\n  let randomID = '';\n  for (let i = 0; i < 8; i++) {\n    randomID += randomChars.charAt(Math.floor(Math.random() * randomChars.length));\n  }\n  \n  // Combina timestamp e ID casuale\n  const sessionID = `${timestamp}_${randomID}`;\n  \n  return sessionID;\n}\n\n// Genera il sessionID\nconst sessionID = generateSessionID();\n\n// Restituisci il risultato per n8n\nreturn [\n  {\n    json: {\n      sessionID: sessionID,\n      timestamp: Date.now(),\n      generatedAt: new Date().toISOString(),\n      // Informazioni aggiuntive per debug/logging\n      debug: {\n        timestampPart: sessionID.split('_')[0],\n        randomPart: sessionID.split('_')[1],\n        format: 'timestamp_randomID'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -16
+      ],
+      "id": "8ee6be7c-9eb2-4c6a-9cd1-383fad063969",
+      "name": "genera id per memoria agente"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze this email: \"{{ $('Webhook').item.json.body.colonna_c }}\"\nIf this is a new product order from the chef, return ONLY the following JSON array with no additional text or explanations:\n[\n  {\"json\": {\"Prodotti rilevati\": \"Product Name 1\", \"Quantità\": number}},\n  {\"json\": {\"Prodotti rilevati\": \"Product Name 2\", \"Quantità\": number}}\n]\nIMPORTANT: For the \"Quantità\" field:\n- If a quantity is specified in the email, use that exact number\n- If no quantity is mentioned for a product, use 1 as the default value\n- Always use numeric values, never strings\n- If a Product is a string with upper case, convert it in lower case\n\nIf this is not a product order, return ONLY: []\nDo not include any explanatory text, markdown formatting, or code blocks. Return only the raw JSON array.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI assistant specialized in the automated management of product orders for a hotel. Your primary function is to process emails received through Gmail service and identify when they contain new product orders from the hotel's chef.\n\nYour role:\n- Email Analyst: Automatically examine every incoming email to determine if it contains a new product order\n- Order Parser: When you identify a valid order, extract and separate each individual product with its quantity\n- n8n Data Structure Generator: Create properly formatted output for n8n workflow automation\n\nOperational context:\nYou work in a hotel environment where the chef regularly sends product orders via email. These orders must be tracked and organized to ensure efficient procurement and optimal management of the hotel's supplies.\n\nOutput requirements for n8n:\n- Return an array of objects where each object has a \"json\" key containing the product data\n- Each product gets its own object in the array\n- Use exact field names: \"Prodotti rilevati\" and \"Quantità\"\n- Quantity values must be numbers, not strings\n- IMPORTANT: If a quantity is not specified in the email, always use 1 as the default value\n- If a quantity is mentioned, use that exact number\n\nOutput format rules:\n- Return ONLY raw JSON array format, no explanatory text\n- Do not use markdown code blocks or formatting\n- Do not add any commentary or explanations\n- The response must be valid JSON that n8n can directly process\n- Never wrap the JSON in text descriptions\n- If the email is not a product order, return an empty array: []\n\nAlways proceed with precision and attention to detail, ensuring accurate product extraction and proper n8n data structure formatting."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "294ed9b0-e51f-4a8a-bd4b-b153545c4190",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\"json\": {\"Prodotti rilevati\": \"pizza\", \"Quantità\": 2}},\n  {\"json\": {\"Prodotti rilevati\": \"guanciale\", \"Quantità\": 1}},\n  {\"json\": {\"Prodotti rilevati\": \"carne\", \"Quantità\": 7}}\n]",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        240
+      ],
+      "id": "9b6b375a-ea8f-4162-9eba-aab4b6b3a7d0",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-3-7-sonnet-20250219",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 3.7"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        416
+      ],
+      "id": "558a6cd6-dfd1-449e-b9a0-62166cc40f51",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "EwGOatkejAqx3bDl",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        -32
+      ],
+      "id": "5753b96f-a1a0-4dfa-a97a-fc2106a532d4",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "95e9b3e6-782a-4788-952b-fe31b34b2fcc",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "array",
+                "operation": "lengthNotEquals",
+                "rightType": "number"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        -16
+      ],
+      "id": "263afa73-8235-4092-bd33-9c012e99f96e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Questa email non è un ordine, oppure l'AI non l'ha rilevata come tale."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        240
+      ],
+      "id": "fb00bfe4-031b-458b-a48c-eb071aa5caed",
+      "name": "Stop and Error"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0b1526cb-eebe-4391-bf52-b9993d0b692c",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "74ca1893-82a2-4d27-a82a-c4b74ce25abc",
+      "name": "Webhook",
+      "webhookId": "0b1526cb-eebe-4391-bf52-b9993d0b692c"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        320
+      ],
+      "id": "1ac79099-c426-45f8-bd06-ec8904341e32",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "HDwtNaCI8Y8dYfoH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2032,
+        -512
+      ],
+      "id": "531f5376-ab6a-4738-b183-202f43f097d0",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ottieni i dati di input\nconst inputData = $input.all();\n\n// Prendo l'array \"data\" dal primo elemento\nconst prodotti = inputData[0].json.data;\n\nlet miglioreIndice = -1;\nlet migliorPrezzo = Infinity;\n\n// Itera attraverso tutti i prodotti\nfor (let i = 0; i < prodotti.length; i++) {\n    const item = prodotti[i];\n    \n    let prezzo = null;\n    \n    // Controlla se il prodotto ha prezzo al pezzo\n    if (item[\"prezzo al pz.\"] && item[\"prezzo al pz.\"] !== '' && item[\"prezzo al pz.\"] !== null) {\n        prezzo = parseFloat(item[\"prezzo al pz.\"]);\n    } \n    // Se non ha prezzo al pezzo, controlla se ha prezzo al kg\n    else if (item[\"prezzo al kg\"] && item[\"prezzo al kg\"] !== '' && item[\"prezzo al kg\"] !== null) {\n        prezzo = parseFloat(item[\"prezzo al kg\"]);\n    }\n    \n    // Se ha trovato un prezzo valido e non è NaN, confronta\n    if (prezzo !== null && !isNaN(prezzo) && prezzo < migliorPrezzo) {\n        migliorPrezzo = prezzo;\n        miglioreIndice = i;\n    }\n}\n\n// Restituisci il prodotto migliore\nif (miglioreIndice >= 0) {\n    return [{ json: prodotti[miglioreIndice] }];\n} else {\n    return [{ json: { errore: \"Nessun prodotto con prezzo valido trovato\" } }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3856,
+        -240
+      ],
+      "id": "2aa6750e-44a0-4a42-b058-a175cb70019c",
+      "name": "Calcola miglior i-esimo prodotto tra l'elenco richiesto"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw",
+          "mode": "list",
+          "cachedResultName": "Gestionale Hermitage - Interfaccia 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 288471911,
+          "mode": "list",
+          "cachedResultName": "LISTINO",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit#gid=288471911"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "nome",
+              "lookupValue": "={{ $json.data[0].json['Prodotti rilevati'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2672,
+        -496
+      ],
+      "id": "45e4f6e5-70a6-4968-af36-b51f95c9584c",
+      "name": "Trova prodotto",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ayZ5Dw8ZEIzwlby3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "06b4431d-a8a1-4ea9-a3d6-8cd09737cbae",
+              "leftValue": "={{ Object.keys($json).length === 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3056,
+        -448
+      ],
+      "id": "08872ce7-cbe1-4032-a08b-78f08b1d8942",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "content": "## Serve logica per gestire invio a \"Generazione\"",
+        "height": 272,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2352,
+        -1056
+      ],
+      "id": "c58b07af-082f-4805-9bf8-2039f620efa5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Per ogni prodotto trovato, calcolare il migliore",
+        "height": 80,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        -448
+      ],
+      "id": "e7a9fa02-4082-44fd-8275-5a8265edb335",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "Aggrega i prodotti ordinati e trovati nel listino, aggiungendo il prezzo migliore e il fornitore associato",
+        "height": 96,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3088,
+        -576
+      ],
+      "id": "0c4b8ba3-8b9f-44b1-b65c-53ddd6e5e7f3",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3632,
+        -352
+      ],
+      "id": "bcb51c39-d9cd-4feb-9e7d-27a3be97f7bd",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw",
+          "mode": "list",
+          "cachedResultName": "Gestionale Hermitage - Interfaccia 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1632065854,
+          "mode": "list",
+          "cachedResultName": "Output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit#gid=1632065854"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Prodotto": "={{ $json.nome }}",
+            "Nome_tecnico": "={{ $json['nome tecnico'] }}",
+            "Fornitore": "={{ $json.fornitore }}",
+            "Best_Prezzo": "={{ $json['prezzo al kg'] }}",
+            "Ordine_originale": "={{ $('Webhook').item.json.body.colonna_c }}",
+            "Data_analisi": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Prodotto_non_trovato",
+              "displayName": "Prodotto_non_trovato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Data_analisi",
+              "displayName": "Data_analisi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Prodotto",
+              "displayName": "Prodotto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nome_tecnico",
+              "displayName": "Nome_tecnico",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fornitore",
+              "displayName": "Fornitore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Best_Prezzo",
+              "displayName": "Best_Prezzo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ordine_originale",
+              "displayName": "Ordine_originale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        4112,
+        -128
+      ],
+      "id": "6120f735-26b7-4da3-83d5-c7a7f5c402fd",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ayZ5Dw8ZEIzwlby3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw",
+          "mode": "list",
+          "cachedResultName": "Gestionale Hermitage - Interfaccia 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1632065854,
+          "mode": "list",
+          "cachedResultName": "Output",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit#gid=1632065854"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Prodotto": "={{ $('Aggregate1').item.json.data[0].json['Prodotti rilevati'] }}",
+            "Prodotto_non_trovato": "ERROR",
+            "Ordine_originale": "="
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Prodotto_non_trovato",
+              "displayName": "Prodotto_non_trovato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Data_analisi",
+              "displayName": "Data_analisi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Prodotto",
+              "displayName": "Prodotto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nome_tecnico",
+              "displayName": "Nome_tecnico",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fornitore",
+              "displayName": "Fornitore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Best_Prezzo",
+              "displayName": "Best_Prezzo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ordine_originale",
+              "displayName": "Ordine_originale",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3280,
+        -272
+      ],
+      "id": "2f14bb10-1445-4360-b524-cc6fe4582920",
+      "name": "Salva prodotto non trovato",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ayZ5Dw8ZEIzwlby3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "={{ $json.json }}",
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        -496
+      ],
+      "id": "5175835b-bcfa-4a3a-91ec-99e8fb524f84",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "content": "## PER TESTING\nSe vuoi testare il caso di un prodotto non trovato nel listino",
+        "height": 320,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2816,
+        -864
+      ],
+      "id": "7c76ec48-f764-4074-a597-caf40e5733d2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw",
+          "mode": "list",
+          "cachedResultName": "Gestionale Hermitage - Interfaccia 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 288471911,
+          "mode": "list",
+          "cachedResultName": "LISTINO",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tnY0dlnr4lvPiKQqPrBAsOS9Ij7TIgSXGIuRJ6Xxdrw/edit#gid=288471911"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "nome",
+              "lookupValue": "=gallina"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2864,
+        -720
+      ],
+      "id": "090f9269-f550-41bb-9001-1ea800407d2e",
+      "name": "Trova prodotto1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ayZ5Dw8ZEIzwlby3",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Aggiungi richiesta in entrata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggiungi richiesta in entrata": {
+      "main": [
+        []
+      ]
+    },
+    "genera id per memoria agente": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "genera id per memoria agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcola miglior i-esimo prodotto tra l'elenco richiesto": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trova prodotto": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Salva prodotto non trovato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Calcola miglior i-esimo prodotto tra l'elenco richiesto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salva prodotto non trovato": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Trova prodotto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trova prodotto1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "567f4a61-f65a-46d5-9619-7d0ba2a1a6e2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5fe0c6d30b3f2d50868ea1dbcdab0a5bc7969b3b7fed4bb6bce74e48925d9362"
+  },
+  "id": "miU3PF8gloONQPg5",
+  "tags": []
+}
